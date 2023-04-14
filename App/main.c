@@ -7,24 +7,34 @@
 
 #include "../LIB/STD_TYPES.h"
 #include "../LIB/BIT_MATH.h"
-#include "../MCAL/DIO/DIO_int.h"
-#include "../HAL/ADXL/ADXL_int.h"
-#include "../HAL/HR_OXIMETER/HR_OXIMETER_int.h"
-#include "../MCAL/UART/UART_int.h"
-#include "../HAL/HC/HC_int.h"
-#include "../MCAL/GIE/GIE_int.h"
+
+/* Service layer inclusion */
 #include "../Service/TIME/TIME_int.h"
 #include "../Service/JSON/JSON_int.h"
-#include "../MCAL/TIM1/TIM1_int.h"
 #include "../Service/COMM/COMM_int.h"
+
+/* HAL layer inclusion*/
+#include "../HAL/ADXL/ADXL_int.h"
+#include "../HAL/HR_OXIMETER/HR_OXIMETER_int.h"
+#include "../HAL/HC/HC_int.h"
 #include "../HAL/BAT/BAT_int.h"
 #include "../HAL/FLASH/FLASH_int.h"
+
+/* MCAL layer inclusion */
+#include "../MCAL/TIM1/TIM1_int.h"
+#include "../MCAL/DIO/DIO_int.h"
+#include "../MCAL/UART/UART_int.h"
+#include "../MCAL/GIE/GIE_int.h"
+
+/* APP layer inclusion */
 #include "EMRG/EMRG.h"
 #include "states.h"
 
+/* AVR LIB inclusion */
 #include <avr/delay.h>
 #include <stdio.h>
 
+/* Sensors object */
 static adxl_t acceleration;
 static max_t pulseOximeter;
 
@@ -34,15 +44,23 @@ volatile u8 timeJson[25];
 volatile u8 maxJson[30];
 volatile u8 myJson[200];
 
+/* System state variable
+ * Options:
+ * 1- MAX_STATE   		// MAX30102 sensor data gathering state
+ * 2- ADXL_STATE  		// ADXL345 sensor data gathering state and send it
+ * 3- SEND_STATE		// State to send all data
+ * 4- NULL_STATE		// state to do nothing
+ * 5- EMRG_STATE		// System is in emergency
+ * */
 u8 G_u8currentState = MAX_STATE;
 
-static volatile u16 G_u16CountToMin = 0;
 
-static void sendAsInteger(s32 A_s32Bpm);
-
-static void sendPayload();
-
-static void doMaxAlgo();
+//static volatile u16 G_u16CountToMin = 0;
+//static void sendAsInteger(s32 A_s32Bpm);
+//
+//static void sendPayload();
+//
+//static void doMaxAlgo();
 
 static void sendAccelertation();
 
@@ -72,10 +90,12 @@ int main(void)
 	/* FLASH init */
 	FLASH_vInit();
 
-	/* Assign callback function for timer1 */
-//	TIM1_vCallBack_OVF( isMaxDone );
-//	TIM1_vSetPreload( 3036 );	/* 4 sec*/
-//	TIM1_vTurnOn();
+	/* Assign callback function for timer1
+	 * Timer1 is used for changing states
+	 * */
+	TIM1_vCallBack_OVF( isMaxDone );
+	TIM1_vSetPreload( 3036 );	/* 4 sec*/
+	TIM1_vTurnOn();
 
 	/* Enable the Global interrupt */
 	GIE_vEnableGlobaLInt();
@@ -125,9 +145,6 @@ int main(void)
 	}
 }
 
-static void sendMaxJson();
-static void sendAccJson();
-
 static void sendAccelertation(){
 	u8 x_axis[5];
 	u8 y_axis[5];
@@ -176,56 +193,56 @@ static void isMaxDone() {
 		TIM1_vTurnOff();
 	}
 
+	/* Reset preload */
 	TIM1_vSetPreload( 3036 );
 }
 
 
-static void doMaxAlgo(){
-	G_u8currentState = MAX_STATE;
-}
+//static void doMaxAlgo(){
+//	G_u8currentState = MAX_STATE;
+//}
 
-static void sendPayload(){
-	G_u16CountToMin++;
+//static void sendPayload(){
+//	G_u16CountToMin++;
+//
+//	if(G_u16CountToMin == 1831){	/* 30 seconds has passed */
+//		HC_vSendString("OK\n");
+//
+//		MAX30102_vGetCurrentReading(&pulseOximeter);
+//		ADXL_vReadAllAxes(&acceleration);
+//
+//		//JSON_strMakeAccObj	   ( acceleration, accJson, sizeof(accJson));
+//		JSON_strMakeBatteryObj ( 67, batteryJson, sizeof(batteryJson));
+//		JSON_strMakeTimeObj	   ( TIME_u32GetTime(), timeJson, sizeof(timeJson));
+//		JSON_strMakeMaxObj     ( pulseOximeter, maxJson, sizeof(maxJson));
+//		JSON_strMakeJsonObj    (  timeJson, batteryJson, maxJson, myJson, sizeof(myJson));
+//
+//		HC_vSendString( myJson );
+//		HC_vSendData('\n');
+//		G_u16CountToMin = 0; /* Reset Counter */
+//	}
+//}
 
-	if(G_u16CountToMin == 1831){	/* 30 seconds has passed */
-		HC_vSendString("OK\n");
-
-		MAX30102_vGetCurrentReading(&pulseOximeter);
-		ADXL_vReadAllAxes(&acceleration);
-
-		//JSON_strMakeAccObj	   ( acceleration, accJson, sizeof(accJson));
-		JSON_strMakeBatteryObj ( 67, batteryJson, sizeof(batteryJson));
-		JSON_strMakeTimeObj	   ( TIME_u32GetTime(), timeJson, sizeof(timeJson));
-		JSON_strMakeMaxObj     ( pulseOximeter, maxJson, sizeof(maxJson));
-		JSON_strMakeJsonObj    (  timeJson, batteryJson, maxJson, myJson, sizeof(myJson));
-
-		HC_vSendString( myJson );
-		HC_vSendData('\n');
-		G_u16CountToMin = 0; /* Reset Counter */
-	}
-}
-
-static void sendAsInteger(s32 A_s32Bpm){
-	u8 L_u8Buffer[10] = {0};
-	u8 i=0;
-
-	if(A_s32Bpm == 0){
-		HC_vSendData('0');
-		return;
-	}
-
-	if(A_s32Bpm < 0){
-		HC_vSendData('-');
-		A_s32Bpm *= -1;
-	}
-
-	for(i=0; A_s32Bpm !=0; i++){
-		L_u8Buffer[i] =  A_s32Bpm % 10;
-		A_s32Bpm /= 10;
-	}
-
-	for(s8 j = i - 1; j>=0; j--){
-		HC_vSendData(L_u8Buffer[j] + '0');
-	}
-
-}
+//static void sendAsInteger(s32 A_s32Bpm){
+//	u8 L_u8Buffer[10] = {0};
+//	u8 i=0;
+//
+//	if(A_s32Bpm == 0){
+//		HC_vSendData('0');
+//		return;
+//	}
+//
+//	if(A_s32Bpm < 0){
+//		HC_vSendData('-');
+//		A_s32Bpm *= -1;
+//	}
+//
+//	for(i=0; A_s32Bpm !=0; i++){
+//		L_u8Buffer[i] =  A_s32Bpm % 10;
+//		A_s32Bpm /= 10;
+//	}
+//
+//	for(s8 j = i - 1; j>=0; j--){
+//		HC_vSendData(L_u8Buffer[j] + '0');
+//	}
+//}
