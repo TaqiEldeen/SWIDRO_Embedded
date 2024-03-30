@@ -68,3 +68,13 @@ static void increaseTime(){
 	/* reset preload */
 	TIM0_vSetPreload(6);
 }
+
+/**
+ * @brief Reset the time to 0
+ * 
+ * @note Use it before starting a new heartrate measurement
+ * 
+ */
+void TIME_vResetTime(){
+	G_u32Time = 0;
+}

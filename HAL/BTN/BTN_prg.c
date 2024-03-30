@@ -20,6 +20,9 @@
 #include "BTN_pri.h"
 #include "BTN_int.h"
 
+/* AVR UTIL */
+#include <util/delay.h>
+
 extern u8 G_u8currentState;	/* The main state */
 
 /**********************************************************************************************************
@@ -40,6 +43,8 @@ void BTN_vInit(){
  * Inputs      : void
  ***********************************************************************************************************/
 static void BTN_vEmrgHandler() {
+	/* De-bouncing */
+	_delay_ms(25);
 	/* Change system state to emergency */
 	G_u8currentState = EMRG_STATE;
 }

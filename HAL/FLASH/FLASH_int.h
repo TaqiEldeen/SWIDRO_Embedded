@@ -13,4 +13,6 @@ void FLASH_vInit();
 
 void FLASH_vTog();
 
+void FLASH_vTurnOff();
+
 #endif /* HAL_FLASH_FLASH_INT_H_ */

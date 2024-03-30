@@ -23,8 +23,8 @@ typedef long double f128;
 typedef void (*ptr_func_t)(void);
 typedef void (*ptr_func_Iu16_Ov)(u16);
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE 	1
+#define FALSE 	0
 
 typedef union
 {

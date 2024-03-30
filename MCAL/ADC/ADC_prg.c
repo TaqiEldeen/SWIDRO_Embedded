@@ -35,8 +35,11 @@ void ADC_vInit(){
 	/*setup the bits adjust*/
 	WRT_BIT(ADMUX, ADLAR, ADC_ADJUST); /*Disable left adjust, although it is by default 0*/
 
+	ADMUX = ( (ADMUX & 0b11110000) | 0b00001110 );	/* Selecting VBG*/
+
 	/*enable the ADC*/
 	SET_BIT(ADCSRA, ADEN);
+
 }
 
 /*used only if needed during runtime*/
@@ -54,7 +57,6 @@ void ADC_vReadDigitalAsync(ptr_func_Iu16_Ov ptr, u8 A_u8ADCId){
 
 /*Read using polling*/
 u16 ADC_u16ReadDigitalSync(){
-	ADMUX = ( (ADMUX & 0b11110000) | 0b00001110 );	/* Selecting VBG*/
 	SET_BIT(ADCSRA, ADSC);							/*Starting conversion*/
 	while(GET_BIT(ADCSRA, ADSC) == 1);	/*Wait till conversion is completed, this will lead to blockage therfore we can use
 	time-out concept using timers or increamental variable*/

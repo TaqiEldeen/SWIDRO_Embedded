@@ -8,8 +8,8 @@
  * 		1- Clear the specific bit you want to write on
  * 		2- Insert the new value you want to write
  */
-/*#define WRT_BIT(REG, BIT, VAL) ( (REG) = ( ( (REG) & (~(1<<(BIT))) ) | ( (VAL) << (BIT)  ) ) )*/
-#define WRT_BIT(REG, BIT, VAL)  REG = ( (REG) &  (~(1<<BIT)) ) | (VAL<<BIT)
+#define WRT_BIT(REG, BIT, VAL) ( (REG) = ( ( (REG) & (~(1<<(BIT))) ) | ( (VAL) << (BIT)  ) ) )
+/*#define WRT_BIT(REG, BIT, VAL)  REG = ( (REG) &  (~(1<<BIT)) ) | (VAL<<BIT) */
 /*
  * SET_BIT is used to assign 1 to a specific bit in a register
  * while maintaining all other bits' value as it is.

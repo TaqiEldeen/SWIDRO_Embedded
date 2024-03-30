@@ -26,7 +26,7 @@
 #include <avr/delay.h>
 #define F_CPU 16000000UL
 
-#define DEBUG 	TRUE
+#define DEBUG 	FALSE
 
 /* ************************************* */
 /* NEEDED PARMETER*/
@@ -106,7 +106,12 @@ void MAX30102_vResetParams(){
     lpbFilterIR.values[1] = 0;
 
     G_u8CurrentPulseDetectorState = PULSE_IDLE;
-    G_f32ValuesBPM[0] = 0;
+
+    for (u8 i = 0; i < PULSE_BPM_SAMPLE_SIZE; i++)
+    {
+        G_f32ValuesBPM[i] = 0;
+    }
+
     G_f32ValuesBPMSum = 0;
     G_u8ValuesBPMCount = 0;
     G_u8BPMIndex = 0;
@@ -293,14 +298,14 @@ FIFO_SAMPLE MAX30102_ReadFIFO()
     return L_sample;
 }
 
-/* ********************************************************************* */
-/* ********************* Collect Group Sample *********************** */
-/* ********************************************************************* */
-static void HR_OXIMETER_vCollectGroupOfSamples()
-{
-    FIFO_SAMPLE L_sample = MAX30102_ReadFIFO();
-    display_data_Collected(L_sample.rawIR, L_sample.rawRED);
-}
+///* ********************************************************************* */
+///* ********************* Collect Group Sample *********************** */
+///* ********************************************************************* */
+//static void HR_OXIMETER_vCollectGroupOfSamples()
+//{
+//    FIFO_SAMPLE L_sample = MAX30102_ReadFIFO();
+//    display_data_Collected(L_sample.rawIR, L_sample.rawRED);
+//}
 
 
 /* ********************************************************************* */
@@ -355,8 +360,8 @@ void MAX30102_vUpdate()
 		#endif
 
 
-        G_f32IrAcValueSqSum += dcFilterIR.result * dcFilterIR.result;
-        G_f32RedAcValueSqSum += dcFilterRed.result * dcFilterRed.result;
+//        G_f32IrAcValueSqSum += dcFilterIR.result * dcFilterIR.result;
+//        G_f32RedAcValueSqSum += dcFilterRed.result * dcFilterRed.result;
 
         if (MAX30102_u8CheckBeat(lpbFilterIR.result) == TRUE) {
         	G_u8PulsesNum++;
@@ -489,6 +494,12 @@ u8 MAX30102_u8CheckBeat(f32 A_f32SensorValue)
                 G_u8ValuesBPMCount++;
 
             G_f32CurrentBPM = G_f32ValuesBPMSum / G_u8ValuesBPMCount;
+
+            /* Send current BPM. TODO: REMOVE IT ON RELEASE */
+            HC_vSendString("MA,");
+            sendAsInteger((s32)G_f32CurrentBPM);
+            sendAsInteger(G_f32CurrentSaO2Value);
+            HC_vSendData('$');
 
             G_u8CurrentPulseDetectorState = PULSE_TRACE_DOWN;
             return TRUE;

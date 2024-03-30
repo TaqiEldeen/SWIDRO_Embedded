@@ -14,6 +14,7 @@
 #include "COMM_pri.h"
 
 extern u8 G_u8currentState;
+extern u8 G_u8Timeout;
 
 void COMM_vInit(){
 	/* Init UART*/
@@ -23,8 +24,12 @@ void COMM_vInit(){
 }
 
 static void recieveState(u16 data) {
-	if(data == 'E') {	/* Emergency*/
+	if(data == 'E') {				/* Emergency*/
 		G_u8currentState = EMRG_STATE;
+	} else if (data == 'N') {		/* Refresh time-out*/
+		G_u8Timeout = 0;
+	} else if (data == 'K') {		/* Return to normal state */
+		G_u8currentState = MAX_STATE;
 	}
 }
 

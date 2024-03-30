@@ -41,4 +41,12 @@ void TIME_vStopTime();
  ***********************************************************************************************************/
 u32 TIME_u32GetTime();
 
+/**
+ * @brief Reset the time to 0
+ * 
+ * @note Use it before starting a new heartrate measurement
+ * 
+ */
+void TIME_vResetTime();
+
 #endif /* SERVICE_TIME_TIME_INT_H_ */

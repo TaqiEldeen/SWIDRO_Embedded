@@ -12,9 +12,13 @@
 
 
 void FLASH_vInit(){
-	DIO_vSetPinDir(PORTB_ID, PIN0_ID, DIR_OUTPUT);
+	DIO_vSetPinDir(PORTC_ID, PIN0_ID, DIR_OUTPUT);
 }
 
 void FLASH_vTog(){
-	DIO_vTogPin(PORTB_ID, PIN0_ID);
+	DIO_vTogPin(PORTC_ID, PIN0_ID);
+}
+
+void FLASH_vTurnOff(){
+	DIO_vSetPinVal(PORTC_ID, PIN0_ID, VAL_LOW);
 }
